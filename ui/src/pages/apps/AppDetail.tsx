@@ -69,8 +69,12 @@ import {
 
 export { connectionAddress, connectionTransportLabel };
 
-export function AppDetail({ renderActions, onReconnect }: {
+export function AppDetail({ renderActions, renderAgentSettings, renderConnectionSettings, onReconnect }: {
   renderActions?: (connection: ToolConnection) => ReactNode;
+  /** Optional agent settings within Permissions, following the access controls. */
+  renderAgentSettings?: (connection: ToolConnection) => ReactNode;
+  /** Provider prerequisites shown before identity and agent access. */
+  renderConnectionSettings?: (connection: ToolConnection) => ReactNode;
   onReconnect?: (connection: ToolConnection) => void;
 } = {}) {
   const { connectionId = "", tab } = useParams<{ connectionId: string; tab?: string }>();
@@ -622,6 +626,7 @@ export function AppDetail({ renderActions, onReconnect }: {
           : permissionsLoading
           ? <ToolsLoading />
           : <div className="space-y-10">
+              {renderConnectionSettings?.(connection)}
               {connection.config?.sourceTemplateKey === "browser-use-cloud" && <BrowserUseSettingsPanel connection={connection} grants={grantsQuery.data} />}
               {connection.config?.sourceTemplateKey === "railway" && <RailwayAccessPanel connection={connection} grants={grantsQuery.data} />}
               {connection.config?.provider === "agentmail" && <EmailConnectionInboxes companyId={connection.companyId} connectionId={connection.id} canConfigure={grantsQuery.data?.capabilities?.canConfigure ?? false} />}
@@ -671,6 +676,7 @@ export function AppDetail({ renderActions, onReconnect }: {
                 </div>
               )}
               <PermissionsPanel
+                afterAgentAccess={renderAgentSettings?.(connection)}
                 actions={actionsContent}
                 connectionId={connectionId}
                 capabilities={grantsQuery.data?.capabilities}
@@ -957,4 +963,3 @@ function galleryEntryFor(
     apps.find((app) => appDefinitionSlug(app) === name) ??
     null;
 }
-
