@@ -322,6 +322,8 @@
      task, project, agent, and future hosts render the same Codex-like chrome. */
   --side-panel-header-height: var(--sz-60px);
   --side-panel-tab-height: var(--sz-30px);
+  --side-panel-mobile-tabs-width: min(calc(100vw - var(--spacing) * 4), 24rem);
+  --side-panel-mobile-tabs-max-height: 60dvh;
   --side-panel-streamlined-tab-min-width: var(--sz-72px);
   --side-panel-streamlined-tab-max-width: var(--sz-160px);
   --side-panel-tab-edge-fade-width: var(--sz-32px);
@@ -999,6 +1001,7 @@ select:where(:not([multiple]):not(.appearance-none)):where(:not([size]), [size="
 .tc-enter-marker { animation: tc-fade-in var(--motion-marker-enter) var(--motion-ease-out) both; }
 .tc-enter-tool { animation: tc-fade-rise var(--motion-tool-enter) var(--motion-ease-out-expo) both; }
 .tc-enter-status { animation: tc-status-in var(--motion-status-enter) var(--motion-ease-out-expo) both; }
+.mobile-task-side-panel { animation-duration: var(--motion-duration-fast); }
 .tc-enter-cot-line { animation: tc-fade-rise var(--motion-duration-fast) var(--motion-ease-standard) both; }
 .tc-notice-chevron { transition-duration: var(--motion-duration-fast); }
 .tc-reveal-diff { animation: tc-fade-in var(--motion-diff-reveal) var(--motion-ease-standard) both; }

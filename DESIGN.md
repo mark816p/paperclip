@@ -121,6 +121,8 @@ How-to guide for day-to-day UI changes: see `doc/design/CHANGING-THE-UI.md`.
 
 ## Motion tokens (Task Chat Redesign)
 
+Mobile task panels fill the viewport within the safe area. Their top toolbar shows the current tab title, an open-tab count and selector, an add action, and an X to return to the feed. The selector lists tabs vertically with wrapping titles, an explicit current-tab check, and visible close controls. Each touch control uses the 44px size token. Desktop tabs keep their horizontal layout. Document links within the current task open through the router and retain the feed's reading position and query cache.
+
 The redesigned task thread (flag `enableTaskChatRedesign`) is the first surface to
 tokenize motion. Principles — reasoning only; values live in `ui/src/index.css`:
 
