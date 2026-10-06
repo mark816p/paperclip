@@ -3,6 +3,7 @@ import {
   applyBaseUrlToEnv,
   baseUrlEnvKeyFor,
   normalizeBaseUrl,
+  validateBaseUrl,
 } from "./provider-base-url";
 
 describe("provider-base-url", () => {
@@ -12,7 +13,14 @@ describe("provider-base-url", () => {
     expect(baseUrlEnvKeyFor("gemini_local")).toBeNull();
   });
 
-  it("accepts only http(s) URLs", () => {
+  it("validates http(s) URLs", () => {
+    expect(validateBaseUrl("  http://localhost:20128/v1 ")).toBeNull();
+    expect(validateBaseUrl("")).toBeNull();
+    expect(validateBaseUrl("localhost:20128")).toBe("Please enter a valid URL, or leave blank for the default endpoint.");
+    expect(validateBaseUrl("ftp://example.com")).toBe("URL must start with http:// or https://");
+  });
+
+  it("normalizes and accepts only valid URLs", () => {
     expect(normalizeBaseUrl("  http://localhost:20128/v1 ")).toBe("http://localhost:20128/v1");
     expect(normalizeBaseUrl("")).toBeNull();
     expect(normalizeBaseUrl("localhost:20128")).toBeNull();

@@ -5,7 +5,7 @@ import { aiConnectionsApi } from "@/api/ai-connections";
 import { aiProviderForAdapter } from "./ai-connections/AiConnectionField";
 import type { AiConnectionBinding } from "@paperclipai/shared";
 import { storeProviderApiKey } from "../lib/provider-credential";
-import { applyBaseUrlToEnv, baseUrlEnvKeyFor, baseUrlPlaceholderFor } from "../lib/provider-base-url";
+import { applyBaseUrlToEnv, baseUrlEnvKeyFor, baseUrlPlaceholderFor, validateBaseUrl } from "../lib/provider-base-url";
 import { SavedProviderKeySelect, useSavedProviderKeys } from "./onboarding/SavedProviderKeySelect";
 import { randomAgentAppearance, resolveAgentAppearance, agentAppearanceSchema } from "@paperclipai/shared";
 import { OnboardingCharacter } from "./onboarding/OnboardingCharacter";
@@ -621,7 +621,7 @@ function OnboardingWizardInner({
    * whether the row has been *answered* on this visit.
    */
   const [sourcePicked, setSourcePicked] = useState(false);
-  const [isOmniroute, setIsOmniroute] = useState(false);
+  const [isOmniroute, setIsOmniroute] = useState((saved?.isOmniroute as boolean) ?? false);
   const savedNativeRunnerDraft = saved?.adapterType === "paperclip_runner";
   const [cwd, setCwd] = useState((saved?.cwd as string) ?? "");
   // Native drafts may carry provider-specific configuration that is invalid
@@ -688,7 +688,7 @@ function OnboardingWizardInner({
    */
   const [apiKey, setApiKey] = useState("");
   // Optional gateway endpoint (e.g. OmniRoute) for API-key mode. Not a secret.
-  const [baseUrl, setBaseUrl] = useState("");
+  const [baseUrl, setBaseUrl] = useState((saved?.baseUrl as string) ?? "");
   // The owner's stored Claude subscription login, read right before the hire
   // (see handleGiveHeartbeat). Onboarding applies it with no extra control,
   // so nothing else reads this state yet.
@@ -909,6 +909,7 @@ function OnboardingWizardInner({
     const state = {
       step, companyName,
       agentName, agentAppearance, agentRole, adapterType, cwd, model, command, args, url,
+      isOmniroute, baseUrl,
       // The mode, never the key: this blob is localStorage.
       credentialMode, credentialModeChoice,
       createdCompanyId, createdCompanyPrefix, createdAgentId,
@@ -918,6 +919,7 @@ function OnboardingWizardInner({
   }, [
     effectiveOnboardingOpen, step, companyName,
     agentName, agentAppearance, agentRole, adapterType, cwd, model, command, args, url,
+    isOmniroute, baseUrl,
     credentialMode, credentialModeChoice,
     createdCompanyId, createdCompanyPrefix, createdAgentId,
     createdCompanyGoalId, createdProjectId, createdIssueRef,
@@ -1800,11 +1802,18 @@ function OnboardingWizardInner({
   async function storeApiKeyUserSecret(companyId: string): Promise<boolean> {
     const key = apiKey.trim();
     const envKey = apiKeyEnvKeyFor(adapterType);
+    if (baseUrl) {
+      const error = validateBaseUrl(baseUrl);
+      if (error) {
+        setError(error);
+        return false;
+      }
+    }
     if (apiKeySecretRef.current?.key === key && apiKeySecretRef.current.companyId === companyId && apiKeySecretRef.current.envKey === envKey) return true;
     try {
       if (managedProvider) {
         const connectionName = isOmniroute ? "My OmniRoute API (Custom)" : `My ${CONNECT_SOURCE_NAMES[adapterType] ?? managedProvider} API${baseUrl ? " (Custom)" : ""}`;
-        await aiConnectionsApi.create(companyId, { provider: managedProvider, method: "api_key", name: connectionName, ownership: "personal", apiKey: key, agentIds: [], allAgents: true });
+        await aiConnectionsApi.create(companyId, { provider: managedProvider, method: "api_key", name: connectionName, ownership: "personal", apiKey: key, agentIds: [], allAgents: true, baseUrl: baseUrl || undefined });
         apiKeySecretRef.current = { key, companyId, envKey, aiConnection: { provider: managedProvider, method: "api_key", mode: "responsible_user" } };
         return true;
       }
@@ -2712,14 +2721,16 @@ function OnboardingWizardInner({
                         setSourcePicked(true);
                         if (id === "omniroute") {
                           setIsOmniroute(true);
-                          setAdapterType("codex_local");
+                          setAdapterType("claude_local");
                           setBaseUrl("http://localhost:20128/v1");
                           setModel("");
+                          setCredentialMode("api_key");
                         } else {
                           setIsOmniroute(false);
                           setAdapterType(id);
+                          setBaseUrl("");
                           if (id === "opencode_local") setModel(DEFAULT_OPENCODE_LOCAL_MODEL);
-                          else if (id !== "codex_local") setModel("");
+                          else if (id !== "codex_local" && id !== "claude_local") setModel("");
                         }
                         setConnectPhase("collapsing");
                       }}

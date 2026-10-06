@@ -295,7 +295,7 @@ export function aiConnectionRoutes(db: Db, options: Parameters<typeof supportsLo
           "Use the existing provider sign-in flow to connect a subscription",
         );
       const attemptStartedAt = new Date();
-      if (!input.name.includes("(Custom)")) {
+      if (!input.baseUrl) {
         await validateAiApiKey(input.provider, input.apiKey!);
       }
       const result = await service.save(
