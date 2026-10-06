@@ -2722,7 +2722,7 @@ function OnboardingWizardInner({
                         if (id === "omniroute") {
                           setIsOmniroute(true);
                           setAdapterType("claude_local");
-                          setBaseUrl("http://localhost:20128/v1");
+                          setBaseUrl("http://localhost:20128");
                           setModel("");
                           setCredentialMode("api_key");
                         } else {
